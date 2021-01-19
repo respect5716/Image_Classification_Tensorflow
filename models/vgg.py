@@ -11,7 +11,7 @@ class ConvBlock(tf.keras.layers.Layer):
         return self.relu(self.bn(self.conv(x)))
 
 
-def create_vggnet(cfg):
+def create_vgg(cfg):
     """
     VGG with batch normalization
     """
@@ -31,16 +31,16 @@ def create_vggnet(cfg):
 
 def VGG11():
     cfg = [64, 'Pool', 128, 'Pool', 256, 256, 'Pool', 512, 512, 'Pool', 512, 512, 'Pool']
-    return create_vggnet(cfg)
+    return create_vgg(cfg)
 
 def VGG13():
     cfg = [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 'Pool', 512, 512, 'Pool', 512, 512, 'Pool']
-    return create_vggnet(cfg)
+    return create_vgg(cfg)
 
 def VGG16():
     cfg = [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 'Pool', 512, 512, 512, 'Pool', 512, 512, 512, 'Pool']
-    return create_vggnet(cfg)
+    return create_vgg(cfg)
 
 def VGG19():
     cfg = [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 256, 'Pool', 512, 512, 512, 512, 'Pool', 512, 512, 512, 512, 'Pool']
-    return create_vggnet(cfg)
+    return create_vgg(cfg)

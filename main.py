@@ -16,7 +16,8 @@ def create_model(model_name):
         'vgg11': VGG11,
         'vgg13': VGG13,
         'vgg16': VGG16,
-        'vgg19': VGG19
+        'vgg19': VGG19,
+        'dense': DenseNetCifar
     }
     return model_dict[model_name]()
 
@@ -41,4 +42,4 @@ def main(model_name):
     model.evaluate(test_loader)
 
 if __name__ == '__main__':
-    main('vgg11')
+    main('dense')
