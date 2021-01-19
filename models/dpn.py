@@ -5,11 +5,12 @@ class GroupConv2D(tf.keras.layers.Layer):
         super(GroupConv2D, self).__init__()
         self.filters = filters
         self.strides = strides
+        self.num_group = 32
 
     def build(self, input_shape):
-        assert input_shape[-1] % 32 == 0
-        self.num_group = input_shape[-1] // 32
-        self.convs = [tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False)]
+        assert self.filters % self.num_group == 0
+        group_filters = self.filters // self.num_group
+        self.convs = [tf.keras.layers.Conv2D(group_filters, 3, self.strides, 'same', use_bias=False) for _ in range(self.num_group)]
 
     def call(self, x):
         xs = tf.split(x, self.num_group, axis=-1)
