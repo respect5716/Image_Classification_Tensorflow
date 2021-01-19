@@ -10,35 +10,37 @@ class ConvBlock(tf.keras.layers.Layer):
     def call(self, x):
         return self.relu(self.bn(self.conv(x)))
 
-def create_model():
+
+def create_vggnet(cfg):
     """
-    VGG16 with Batch Normalization
+    VGG with batch normalization
     """
     inputs = tf.keras.layers.Input((32, 32, 3))
-    x = ConvBlock(64)(inputs)
-    x = ConvBlock(64)(x)
-    x = tf.keras.layers.MaxPool2D()(x)
+    x = inputs
 
-    x = ConvBlock(128)(x)
-    x = ConvBlock(128)(x)
-    x = tf.keras.layers.MaxPool2D()(x)
-
-    x = ConvBlock(256)(x)
-    x = ConvBlock(256)(x)
-    x = ConvBlock(256)(x)
-    x = tf.keras.layers.MaxPool2D()(x)
-
-    x = ConvBlock(512)(x)
-    x = ConvBlock(512)(x)
-    x = ConvBlock(512)(x)
-    x = tf.keras.layers.MaxPool2D()(x)
-
-    x = ConvBlock(512)(x)
-    x = ConvBlock(512)(x)
-    x = ConvBlock(512)(x)
-    x = tf.keras.layers.MaxPool2D()(x)
-
+    for c in cfg:
+        if c == 'Pool':
+            x = tf.keras.layers.MaxPool2D()(x)
+        else:
+            x = ConvBlock(c)(x)
     x = tf.keras.layers.Flatten()(x)
     outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
 
     return tf.keras.Model(inputs, outputs)
+
+
+def VGG11():
+    cfg = [64, 'Pool', 128, 'Pool', 256, 256, 'Pool', 512, 512, 'Pool', 512, 512, 'Pool']
+    return create_vggnet(cfg)
+
+def VGG13():
+    cfg = [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 'Pool', 512, 512, 'Pool', 512, 512, 'Pool']
+    return create_vggnet(cfg)
+
+def VGG16():
+    cfg = [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 'Pool', 512, 512, 512, 'Pool', 512, 512, 512, 'Pool']
+    return create_vggnet(cfg)
+
+def VGG19():
+    cfg = [64, 64, 'Pool', 128, 128, 'Pool', 256, 256, 256, 256, 'Pool', 512, 512, 512, 512, 'Pool', 512, 512, 512, 512, 'Pool']
+    return create_vggnet(cfg)
