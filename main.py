@@ -20,7 +20,10 @@ def create_model(model_name):
         'dense': DenseNetCifar,
         'dla': DLA,
         'dpn26': DPN26,
-        'dpn92': DPN92
+        'dpn92': DPN92,
+        'resnet50': ResNet50,
+        'resnet101': ResNet101,
+        'resnet152': ResNet152
     }
     return model_dict[model_name]()
 
@@ -45,4 +48,4 @@ def main(model_name):
     model.evaluate(test_loader)
 
 if __name__ == '__main__':
-    main('dpn26')
+    main('resnet50')
