@@ -1,3 +1,9 @@
+"""
+DPN in tensorflow 2
+
+Yunpeng Chen, Dual Path Network
+https://arxiv.org/abs/1707.01629
+"""
 import tensorflow as tf
 
 class GroupConv2D(tf.keras.layers.Layer):
@@ -54,12 +60,12 @@ class Bottleneck(tf.keras.layers.Layer):
         x = self.relu3(x)
         return x
 
-def create_dpn(cfg):
+def DPN(cfg, input_shape=(32, 32, 3), output_shape=10):
     filters1, filters2, = cfg['filters1'], cfg['filters2']
     num_blocks, dense_depth = cfg['num_blocks'], cfg['dense_depth']
     strides = [1, 2, 2, 2]
 
-    inputs = tf.keras.layers.Input((32, 32, 3))
+    inputs = tf.keras.layers.Input(input_shape)
     x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
@@ -69,9 +75,8 @@ def create_dpn(cfg):
         for idx, bs in enumerate(block_strides):
             x = Bottleneck(f1, f2, dp, bs, idx==0)(x)
     
-    x = tf.keras.layers.AvgPool2D(4)(x)
-    x = tf.keras.layers.Flatten()(x)
-    outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
+    x = tf.keras.layers.GlobalAvgPool2D()(x)
+    outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
 def DPN26():
@@ -81,7 +86,7 @@ def DPN26():
         'num_blocks': [2, 2, 2, 2],
         'dense_depth': [16, 32, 24, 128]
     }
-    return create_dpn(cfg)
+    return DPN(cfg)
 
 def DPN92():
     cfg = {
@@ -90,4 +95,4 @@ def DPN92():
         'num_blocks': [3, 4, 20, 3],
         'dense_depth': [16, 32, 24, 128]
     }
-    return create_dpn(cfg)
+    return DPN(cfg)

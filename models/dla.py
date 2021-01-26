@@ -1,3 +1,9 @@
+"""
+DLA in tensorflow 2
+
+Fisher Yu, Deep Layer Aggregation
+https://arxiv.org/abs/1707.06484
+"""
 import tensorflow as tf
 
 class ConvBlock(tf.keras.layers.Layer):
@@ -14,15 +20,22 @@ class ConvBlock(tf.keras.layers.Layer):
 class ResBlock(tf.keras.layers.Layer):
     def __init__(self, filters, strides):
         super(ResBlock, self).__init__()
-        self.conv1 = tf.keras.layers.Conv2D(filters, 3, strides, 'same', use_bias=False)
+        self.filters = filters
+        self.strides = strides
+    
+    def build(self, input_shape):
+        if self.strides > 1 or input_shape[-1] != self.filters:
+            self.shortcut = tf.keras.layers.Conv2D(self.filters, 1, self.strides, use_bias=False)
+        else:
+            self.shortcut = tf.identity
+
+        self.conv1 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False)
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
-        self.conv2 = tf.keras.layers.Conv2D(filters, 3, 1, 'same', use_bias=False)
+        self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, 1, 'same', use_bias=False)
         self.bn2 = tf.keras.layers.BatchNormalization()
         self.relu2 = tf.keras.layers.ReLU()
 
-        self.shortcut = tf.keras.layers.Conv2D(filters, 1, strides, use_bias=False)
-    
     def call(self, x):
         res = self.shortcut(x)
         x = self.relu1(self.bn1(self.conv1(x)))
@@ -46,17 +59,19 @@ class Root(tf.keras.layers.Layer):
 
 
 class Tree(tf.keras.layers.Layer):
-    def __init__(self, filters, level, strides):
+    def __init__(self, filters, strides, level):
         super(Tree, self).__init__()
         self.level = level
+
         if level == 1:
             self.root = Root(filters)
             self.left_node = ResBlock(filters, strides)
             self.right_node = ResBlock(filters, 1)
+        
         else:
             self.root = Root(filters)
-            for i in reversed(range(1, level)):
-                subtree = Tree(filters, level=i, strides=strides)
+            for i in reversed(range(1, self.level)):
+                subtree = Tree(filters, strides, i)
                 self.__setattr__(f'level_{i}', subtree)
             self.prev_root = ResBlock(filters, strides)
             self.left_node = ResBlock(filters, 1)
@@ -77,8 +92,8 @@ class Tree(tf.keras.layers.Layer):
         return x
 
 
-def create_dla():
-    inputs = tf.keras.layers.Input((32, 32, 3))
+def DLA(input_shape=(32, 32, 3), output_shape=10):
+    inputs = tf.keras.layers.Input(input_shape)
     x = ConvBlock(16)(inputs)
     x = ConvBlock(16)(x)
     x = ConvBlock(32)(x)
@@ -86,12 +101,12 @@ def create_dla():
     x = Tree(64, 1, 1)(x)
     x = Tree(128, 2, 2)(x)
     x = Tree(256, 2, 2)(x)
-    x = Tree(512, 1, 2)(x)
+    x = Tree(512, 2, 1)(x)
 
-    x = tf.keras.layers.Flatten()(x)
-    outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
-
+    x = tf.keras.layers.GlobalAvgPool2D()(x)
+    outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
-def DLA():
-    return create_dla()
+if __name__ == '__main__':
+    model = DLA()
+    print(model.summary())

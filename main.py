@@ -48,4 +48,4 @@ def main(model_name):
     model.evaluate(test_loader)
 
 if __name__ == '__main__':
-    main('resnet50')
+    main('vgg11')

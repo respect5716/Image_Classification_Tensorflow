@@ -1,3 +1,9 @@
+"""
+ResNet in tensorflow 2
+
+Kaiming He, Deep Residual Learning for Image Recognition
+https://arxiv.org/abs/1512.03385
+"""
 import tensorflow as tf
 
 class Bottleneck(tf.keras.layers.Layer):
@@ -8,7 +14,7 @@ class Bottleneck(tf.keras.layers.Layer):
         self.expansion = 4
     
     def build(self, input_shape):
-        if self.strides > 1 or input_shape[-1] != self.filters:
+        if self.strides > 1 or input_shape[-1] != self.filters * self.expansion:
             self.shortcut = tf.keras.layers.Conv2D(self.filters * self.expansion, 1, self.strides, use_bias=False)
         else:
             self.shortcut = tf.identity
@@ -17,11 +23,7 @@ class Bottleneck(tf.keras.layers.Layer):
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
     
-
-        if self.strides > 1:
-            self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, 2, 'same', use_bias=False)
-        else:
-            self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, 1, 'same', use_bias=False)
+        self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False)
         self.bn2 = tf.keras.layers.BatchNormalization()
         self.relu2 = tf.keras.layers.ReLU()
 
@@ -39,12 +41,10 @@ class Bottleneck(tf.keras.layers.Layer):
         return x
 
 class ResBlock(tf.keras.layers.Layer):
-    def __init__(self, filters, num_block, downsample):
+    def __init__(self, filters, strides, num_block):
         super(ResBlock, self).__init__()
-        if downsample:
-            self.blocks = [Bottleneck(filters, 1) for i in range(num_block)]
-        else:
-            self.blocks = [Bottleneck(filters, 2) if i==0 else Bottleneck(filters, 1) for i in range(num_block)]
+        strides = [strides] + [1] * (num_block - 1)
+        self.blocks = [Bottleneck(filters, s) for s in strides]
     
     def call(self, x):
         for b in self.blocks:
@@ -52,32 +52,41 @@ class ResBlock(tf.keras.layers.Layer):
         return x
 
 
-def create_resnet(cfg):
-    inputs = tf.keras.layers.Input((32, 32, 3))
+def ResNet(cfg, input_shape=(32, 32, 3), output_shape=10):
+    inputs = tf.keras.layers.Input(input_shape)
     x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
-    x = ResBlock(64, cfg[0], False)(x)
-    x = ResBlock(128, cfg[1], True)(x)
-    x = ResBlock(256, cfg[2], True)(x)
-    x = ResBlock(512, cfg[3], True)(x)
+    x = ResBlock(64, 1, cfg['num_block'][0])(x)
+    x = ResBlock(128, 2, cfg['num_block'][1])(x)
+    x = ResBlock(256, 2, cfg['num_block'][2])(x)
+    x = ResBlock(512, 2, cfg['num_block'][3])(x)
 
-    x = tf.keras.layers.AvgPool2D(4)(x)
-    x = tf.keras.layers.Flatten()(x)
-    outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
-
+    x = tf.keras.layers.GlobalAvgPool2D()(x)
+    outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
 
 def ResNet50():
-    cfg = [3, 4, 6, 3]
-    return create_resnet(cfg)
+    cfg = {
+        'num_block': [3, 4, 6, 3]
+    }
+    return ResNet(cfg)
 
 def ResNet101():
-    cfg = [3, 4, 23, 3]
-    return create_resnet(cfg)
+    cfg = {
+        'num_block': [3, 4, 23, 3]
+    }
+    return ResNet(cfg)
 
 def ResNet152():
-    cfg = [3, 8, 36, 3]
-    return create_resnet(cfg)
+    cfg = {
+        'num_block': [3, 8, 36, 3]
+    }
+    return ResNet(cfg)
+
+
+if __name__ == '__main__':
+    model = ResNet50()
+    print(model.summary())

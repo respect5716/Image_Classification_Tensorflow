@@ -1,4 +1,9 @@
-import numpy as np
+"""
+DenseNet in tensorflow 2
+
+Gao Huang, Densely Connected Convolutional Networks
+https://arxiv.org/abs/1608.06993
+"""
 import tensorflow as tf
 
 
@@ -24,42 +29,65 @@ class Transition(tf.keras.layers.Layer):
         super(Transition, self).__init__()
         self.bn = tf.keras.layers.BatchNormalization()
         self.relu = tf.keras.layers.ReLU()
-        self.conv = tf.keras.layers.Conv2D(filters, 1,1, use_bias=False)
+        self.conv = tf.keras.layers.Conv2D(filters, 1, 1, use_bias=False)
         self.pool = tf.keras.layers.AvgPool2D()
     
     def call(self, x):
         return self.pool(self.conv(self.relu(self.bn(x))))
 
-def create_densenet(num_blocks, growth_rate):
-    filters = growth_rate * 2
-    inputs = tf.keras.layers.Input((32, 32, 3))
+def DenseNet(cfg, input_shape=(32, 32, 3), output_shape=10):
+    filters = cfg['growth_rate'] * 2
+    inputs = tf.keras.layers.Input(input_shape)
     x = tf.keras.layers.Conv2D(filters, 3, 1, 'same', use_bias=False)(inputs)
 
-    for n in num_blocks:
-        for _ in range(n):
-            x = Bottleneck(growth_rate)(x)
-            filters += growth_rate
-
+    for nb in cfg['num_block']:
+        for _ in range(nb):
+            x = Bottleneck(cfg['growth_rate'])(x)
+            filters += cfg['growth_rate']
         filters //= 2
         x = Transition(filters)(x)
 
-    x = tf.keras.layers.Flatten()(x)
-    outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
-
+    x = tf.keras.layers.GlobalAvgPool2D()(x)
+    outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
 
+
 def DenseNet121():
-    return create_densenet([6, 12, 24, 16], 32)
+    cfg = {
+        'growth_rate': 32,
+        'num_block': [6, 12, 24, 16]
+    }
+    return DenseNet(cfg)
 
 def DenseNet169():
-    return create_densenet([6, 12, 32, 32], 32)
+    cfg = {
+        'growth_rate': 32,
+        'num_block': [6, 12, 32, 32]
+    }
+    return DenseNet(cfg)
 
 def DenseNet201():
-    return create_densenet([6, 12, 48, 32], 32)
+    cfg = {
+        'growth_rate': 32,
+        'num_block': [6, 12, 48, 32]
+    }
+    return DenseNet(cfg)
 
 def DenseNet264():
-    return create_densenet([6, 12, 64, 48], 32)
+    cfg = {
+        'growth_rate': 32,
+        'num_block': [6, 12, 64, 48]
+    }
+    return DenseNet(cfg)
 
 def DenseNetCifar():
-    return create_densenet([6, 12, 24, 16], 12)
+    cfg = {
+        'growth_rate': 12,
+        'num_block': [6, 12, 24, 16]
+    }
+    return DenseNet(cfg)
+
+if __name__ == '__main__':
+    model = DenseNetCifar()
+    print(model.summary())

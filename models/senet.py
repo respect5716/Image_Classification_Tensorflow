@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 def residual_block(x, filters, strides):
     if strides != 1 or x.shape[-1] != filters:
         shortcut = tf.keras.layers.Conv2D(filters, 1, strides, use_bias=False)(x)
@@ -24,7 +25,7 @@ def residual_block(x, filters, strides):
 
     return x
 
-def residual_blocks(x, filters, num_block, downsample):
+def residual_blocks(x, filters, num_block, downsample, block_id):
     if downsample:
         x = residual_block(x, filters, 2)
     else:
@@ -39,12 +40,13 @@ def create_senet(num_block):
     x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
 
-    x = residual_blocks(x, 64, num_block[0], False)
-    x = residual_blocks(x, 128, num_block[1], True)
-    x = residual_blocks(x, 256, num_block[2], True)
-    x = residual_blocks(x, 512, num_block[3], True)
+    x = residual_blocks(x, 64, num_block[0], False, 1)
+    x = residual_blocks(x, 128, num_block[1], True, 2)
+    x = residual_blocks(x, 256, num_block[2], True, 3)
+    x = residual_blocks(x, 512, num_block[3], True, 4)
     
     x = tf.keras.layers.AvgPool2D(4)(x)
+    x = tf.keras.layers.Flatten()(x)
     outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
