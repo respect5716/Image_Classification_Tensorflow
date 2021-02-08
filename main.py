@@ -39,11 +39,11 @@ def create_model(model_name):
 def main(args):
     wandb.init(
         project = 'cifar10',
-        config = var(args)
+        config = vars(args)
     )
 
     train_loader, test_loader = create_loader(args.batch_size)
-    model = create_model(model_name)
+    model = create_model(args.model)
     learning_rate = tf.keras.optimizers.schedules.ExponentialDecay(0.01, 1000, 0.95)
     model.compile(
         loss = 'sparse_categorical_crossentropy',
