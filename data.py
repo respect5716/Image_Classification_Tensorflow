@@ -38,3 +38,9 @@ class Dataloader(tf.keras.utils.Sequence):
         batch_x = (batch_x / 127.5) - 1
         batch_y = batch_y[:,0]
         return batch_x, batch_y
+
+def create_loader(batch_size):
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
+    train_loader = Dataloader(x_train, y_train, 'train', batch_size)
+    test_loader = Dataloader(x_test, y_test, 'test', batch_size)
+    return train_loader, test_loader
