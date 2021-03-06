@@ -6,7 +6,7 @@ from .dla import *
 from .dpn import *
 from .resnet import *
 
-def create_model(model_name, weight_decay):
+def create_model(model_name, initializer, weight_decay):
     model_dict = {
         'vgg11': VGG11,
         'vgg13': VGG13,
@@ -21,7 +21,6 @@ def create_model(model_name, weight_decay):
         'dpn92': DPN92,
     }
 
-    initializer = tf.keras.initializers.HeUniform()
     regularizer = tf.keras.regularizers.L2(weight_decay)
     model = model_dict[model_name](initializer, regularizer)
     return model
