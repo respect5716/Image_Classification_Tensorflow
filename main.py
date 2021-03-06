@@ -26,6 +26,10 @@ def prepare():
 
     train_loader, test_loader = create_loader(CONFIG['batch_size'])
     model = create_model(CONFIG['model'])
+    initializer = tf.keras.initializers.HeUniform()
+    regularizer = tf.keras.regularizers.L2(CONFIG['weight_decay'])
+    model = model(initializer, regularizer)
+
     optimizer = create_optimizer(CONFIG['optimizer'])
     model.compile(
         loss = 'sparse_categorical_crossentropy',
@@ -36,7 +40,7 @@ def prepare():
 
 def train(model, train_loader, test_loader):
     callbacks = [
-        tf.keras.callbacks.LearningRateScheduler(CosineDecay(CONFIG['epoch_size'], CONFIG['learning_rate'])),
+        tf.keras.callbacks.LearningRateScheduler(CosineDecay(CONFIG['epoch_size'], CONFIG['lr'])),
         wandb.keras.WandbCallback(monitor='val_acc'),
     ]
 
