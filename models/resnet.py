@@ -20,7 +20,7 @@ class Bottleneck(tf.keras.layers.Layer):
         else:
             self.shortcut = tf.identity
 
-        self.conv1 = tf.keras.layers.Conv2D(self.filters, 1, 1, 'same', use_bias=False, **self.conv_kwargs)
+        self.conv1 = tf.keras.layers.Conv2D(self.filters, 1, 1, 'same', use_bias=False, **self.kwargs)
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
     
