@@ -22,5 +22,5 @@ def create_model(model_name, initializer, weight_decay):
     }
 
     regularizer = tf.keras.regularizers.L2(weight_decay)
-    model = model_dict[model_name](initializer, regularizer)
+    model = model_dict[model_name](kernel_initializer=initializer, kernel_regularizer=regularizer)
     return model

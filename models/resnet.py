@@ -7,27 +7,32 @@ https://arxiv.org/abs/1512.03385
 import tensorflow as tf
 
 class Bottleneck(tf.keras.layers.Layer):
-    def __init__(self, filters, strides):
+    def __init__(self, filters, strides, initializer, regularizer):
         super(Bottleneck, self).__init__()
         self.filters = filters
         self.strides = strides
-        self.expansion = 4
+        self.expanded_filter = 4 * filter
+        self.conv_kwargs = {
+            'use_bias': False,
+            'kernel_initializer': initializer,
+            'kernel_regularizer': regularizer
+        }
     
     def build(self, input_shape):
-        if self.strides > 1 or input_shape[-1] != self.filters * self.expansion:
-            self.shortcut = tf.keras.layers.Conv2D(self.filters * self.expansion, 1, self.strides, use_bias=False)
+        if self.strides > 1 or input_shape[-1] != self.expanded_filter:
+            self.shortcut = tf.keras.layers.Conv2D(self.expanded_filter, 1, self.strides, **self.conv_kwargs)
         else:
             self.shortcut = tf.identity
 
-        self.conv1 = tf.keras.layers.Conv2D(self.filters, 1, 1, use_bias=False)
+        self.conv1 = tf.keras.layers.Conv2D(self.filters, 1, 1, 'same', **self.conv_kwargs)
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
     
-        self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False)
+        self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', **self.conv_kwargs)
         self.bn2 = tf.keras.layers.BatchNormalization()
         self.relu2 = tf.keras.layers.ReLU()
 
-        self.conv3 = tf.keras.layers.Conv2D(self.filters * self.expansion, 1, use_bias=False)
+        self.conv3 = tf.keras.layers.Conv2D(self.expanded_filter, 1, 1, 'same', **self.conv_kwargs)
         self.bn3 = tf.keras.layers.BatchNormalization()
         self.relu3 = tf.keras.layers.ReLU()
     
@@ -39,6 +44,7 @@ class Bottleneck(tf.keras.layers.Layer):
         x += res
         x = self.relu3(x)
         return x
+
 
 class ResBlock(tf.keras.layers.Layer):
     def __init__(self, filters, strides, num_block):
@@ -52,9 +58,9 @@ class ResBlock(tf.keras.layers.Layer):
         return x
 
 
-def ResNet(cfg, input_shape=(32, 32, 3), output_shape=10):
+def ResNet(cfg, initializer, regularizer, input_shape=(32, 32, 3), output_shape=10):
     inputs = tf.keras.layers.Input(input_shape)
-    x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False)(inputs)
+    x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False, kernel_initializer=initializer, kernel_regularizer=regularizer)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
@@ -64,29 +70,24 @@ def ResNet(cfg, input_shape=(32, 32, 3), output_shape=10):
     x = ResBlock(512, 2, cfg['num_block'][3])(x)
 
     x = tf.keras.layers.GlobalAvgPool2D()(x)
-    outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
+    outputs = tf.keras.layers.Dense(output_shape, activation='softmax', kernel_initializer=initializer, kernel_regularizer=regularizer)(x)
     return tf.keras.Model(inputs, outputs)
 
 
-def ResNet50():
+def ResNet50(initializer, regularizer):
     cfg = {
         'num_block': [3, 4, 6, 3]
     }
-    return ResNet(cfg)
+    return ResNet(cfg, initializer, regularizer)
 
-def ResNet101():
+def ResNet101(initializer, regularizer):
     cfg = {
         'num_block': [3, 4, 23, 3]
     }
-    return ResNet(cfg)
+    return ResNet(cfg, initializer, regularizer)
 
-def ResNet152():
+def ResNet152(initializer, regularizer):
     cfg = {
         'num_block': [3, 8, 36, 3]
     }
-    return ResNet(cfg)
-
-
-if __name__ == '__main__':
-    model = ResNet50()
-    print(model.summary())
+    return ResNet(cfg, initializer, regularizer)

@@ -11,7 +11,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='vgg11')
 parser.add_argument('--optimizer', type=str, default='sgd')
-parser.add_argument('--initializer', type=str, default='he_uniform')
+parser.add_argument('--initializer', type=str, default='glorot_uniform')
 parser.add_argument('--lr', type=float, default=0.1)
 parser.add_argument('--weight_decay', type=float, default=5e-4)
 parser.add_argument('--batch_size', type=int, default=128)
