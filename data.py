@@ -10,9 +10,9 @@ class Dataloader(tf.keras.utils.Sequence):
         self.mode = mode
         self.batch_size = batch_size
         self.transform = iaa.Sequential([
-            iaa.PadToFixedSize(36, 36),
+            iaa.PadToFixedSize(40, 40),
+            iaa.HorizontalFlip(p=0.5),
             iaa.CropToFixedSize(32, 32),
-            iaa.HorizontalFlip(p=0.5)
         ])
 
         self.data_size = len(self.x)

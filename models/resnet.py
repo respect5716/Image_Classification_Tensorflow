@@ -4,6 +4,7 @@ ResNet in tensorflow 2
 Kaiming He, Deep Residual Learning for Image Recognition
 https://arxiv.org/abs/1512.03385
 """
+
 import tensorflow as tf
 
 class ResBlock(tf.keras.layers.Layer):
