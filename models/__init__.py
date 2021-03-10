@@ -21,7 +21,7 @@ def create_model(model_name, initializer, weight_decay):
         'resnet110': ResNet110,
         'resnext29_8x64d': ResNext29_8x64d,
         'resnext29_16x64d': ResNext29_16x64d,
-        'resnext29_32_4d': ResNext29_32x4d,
+        'resnext29_32x4d': ResNext29_32x4d,
         'dense': DenseNetCifar,
         'dla': DLA,
         'dpn26': DPN26,
@@ -29,6 +29,10 @@ def create_model(model_name, initializer, weight_decay):
     }
 
     regularizer = tf.keras.regularizers.L2(weight_decay)
-    model = model_dict[model_name](kernel_initializer=initializer, kernel_regularizer=regularizer)
+    kwargs = {
+        'kernel_initializer': initializer,
+        'kernel_regularizer': regularizer,
+    }
+    model = model_dict[model_name](**kwargs)
     print(model.summary())
     return model
