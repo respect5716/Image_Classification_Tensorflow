@@ -1,4 +1,24 @@
-# Tensorflow_CIFAR10
+# Image Classification
 
-This project is motivated by [this repository](https://github.com/kuangliu/pytorch-cifar), and I converted pytorch code to tensorflow code.
+
+
+## 목적
+
+Image Classification 논문 구현 및 실험을 위한 repository 입니다.
+
+
+
+## 환경
+
+Google Colaboratory
+Python 3.7
+Tensorflow 2.4.1
+
+
+
+## 결과
+
+| Model | Accuracy |
+| ----- | -------- |
+| VGG19 |          |
 
