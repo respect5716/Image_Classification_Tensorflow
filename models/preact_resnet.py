@@ -53,13 +53,13 @@ class PreactResStack(tf.keras.layers.Layer):
 def PreactResNet(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     inputs = tf.keras.layers.Input(input_shape)
     x = tf.keras.layers.Conv2D(16, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.ReLU()(x)
 
     x = PreactResStack(16, 1, cfg['num_block'], **kwargs)(x)
     x = PreactResStack(32, 2, cfg['num_block'], **kwargs)(x)
     x = PreactResStack(64, 2, cfg['num_block'], **kwargs)(x)
 
+    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
     x = tf.keras.layers.GlobalAvgPool2D()(x)
     outputs = tf.keras.layers.Dense(output_shape, activation='softmax', **kwargs)(x)
     return tf.keras.Model(inputs, outputs)

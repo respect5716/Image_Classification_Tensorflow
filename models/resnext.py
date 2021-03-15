@@ -56,7 +56,7 @@ class Stack(tf.keras.layers.Layer):
 
 def ResNeXt(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     inputs = tf.keras.layers.Input(input_shape)
-    x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
+    x = tf.keras.layers.Conv2D(16, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
 
@@ -68,10 +68,10 @@ def ResNeXt(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     outputs = tf.keras.layers.Dense(output_shape, activation='softmax', **kwargs)(x)
     return tf.keras.Model(inputs, outputs)
 
-def ResNext29_2x64d(**kwargs):
+def ResNext29_4x16d(**kwargs):
     cfg = {
-        'bottleneck_width': 64,
-        'cardinality': 2,
+        'bottleneck_width': 16,
+        'cardinality': 4,
         'num_block': 3,
     }
     return ResNeXt(cfg, **kwargs)
