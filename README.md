@@ -22,3 +22,6 @@ Tensorflow 2.4.1
 | ----- | -------- |
 | VGG19 |          |
 
+
+## Reference
+* https://github.com/kuangliu/pytorch-cifar

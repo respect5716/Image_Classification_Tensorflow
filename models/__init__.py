@@ -14,10 +14,9 @@ def create_model(model_name, initializer, weight_decay):
         'vgg19': VGG19,
         'resnet110': ResNet110,
         'preact_resnet110': PreactResNet110,
-        'resnext29_8x64d': ResNext29_8x64d,
+        'resnext29_2x64d': ResNext29_2x64d,
         'dense': DenseNetCifar,
         'dla': DLA,
-        'dpn26': DPN26,
         'dpn92': DPN92,
     }
 

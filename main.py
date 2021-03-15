@@ -10,6 +10,7 @@ from optimizers import create_optimizer, CosineDecay
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default='vgg11')
+parser.add_argument('--project', type=str, default='cifar10')
 parser.add_argument('--optimizer', type=str, default='sgd')
 parser.add_argument('--initializer', type=str, default='he_uniform')
 parser.add_argument('--lr', type=float, default=0.1)
@@ -21,7 +22,7 @@ CONFIG = vars(args)
 
 def prepare():
     wandb.init(
-        project = 'cifar10',
+        project = CONFIG['project'],
         config = CONFIG
     )
     
@@ -34,10 +35,12 @@ def prepare():
     )
     return model
 
+
 def train(model, train_data, val_data):
     callbacks = [
         tf.keras.callbacks.LearningRateScheduler(CosineDecay(CONFIG['epoch_size'], CONFIG['lr'])),
-        wandb.keras.WandbCallback(monitor='val_acc'),
+        tf.keras.callbacks.ModelCheckpoint('weights.h5', monitor='val_acc', save_best_only=True, save_weights_only=True),
+        wandb.keras.WandbCallback(monitor='val_acc', save_model=False),
     ]
 
     history = model.fit(
@@ -48,6 +51,7 @@ def train(model, train_data, val_data):
     )
 
 def test(model, test_data):
+    model.load_weights('weights.h5')
     test_loss, test_acc = model.evaluate(test_data)
     wandb.log({
         'test_loss': test_loss,
