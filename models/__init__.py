@@ -4,10 +4,11 @@ from .vgg import *
 from .resnet import *
 from .resnext import *
 from .preact_resnet import *
-
 from .densenet import *
-from .dla import *
 from .dpn import *
+
+from .dla import *
+from .senet import *
 
 def create_model(model_name, initializer, weight_decay):
     model_dict = {
@@ -15,9 +16,10 @@ def create_model(model_name, initializer, weight_decay):
         'resnet110': ResNet110,
         'preact_resnet110': PreactResNet110,
         'resnext29_2x64d': ResNext29_2x64d,
-        'dense': DenseNetCifar,
+        'densenet121': DenseNet121,
+        'dpn26': DPN26,
         'dla': DLA,
-        'dpn92': DPN92,
+        'senet18': SENet18,
     }
 
     regularizer = tf.keras.regularizers.l2(weight_decay)

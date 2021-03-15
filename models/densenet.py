@@ -24,6 +24,7 @@ class Bottleneck(tf.keras.layers.Layer):
         x = tf.concat([res, x], axis=-1)
         return x
 
+
 class Transition(tf.keras.layers.Layer):
     def __init__(self, filters):
         super(Transition, self).__init__()
@@ -34,6 +35,7 @@ class Transition(tf.keras.layers.Layer):
     
     def call(self, x):
         return self.pool(self.conv(self.relu(self.bn(x))))
+
 
 def DenseNet(cfg, input_shape=(32, 32, 3), output_shape=10):
     filters = cfg['growth_rate'] * 2
@@ -80,14 +82,3 @@ def DenseNet264():
         'num_block': [6, 12, 64, 48]
     }
     return DenseNet(cfg)
-
-def DenseNetCifar():
-    cfg = {
-        'growth_rate': 12,
-        'num_block': [6, 12, 24, 16]
-    }
-    return DenseNet(cfg)
-
-if __name__ == '__main__':
-    model = DenseNetCifar()
-    print(model.summary())
