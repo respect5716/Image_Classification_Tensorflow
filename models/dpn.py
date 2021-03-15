@@ -73,20 +73,20 @@ def DPN(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     return tf.keras.Model(inputs, outputs)
 
 
-def DPN26(**kwargs):
+def DPN32(**kwargs):
     cfg = {
         'filters1': [16, 32, 64, 128],
         'filters2': [48, 96, 192, 384],
         'dense_depth': [4, 8, 10, 20],
-        'num_block': [2, 2, 2, 2],
+        'num_block': [2, 3, 3, 2],
     }
     return DPN(cfg, **kwargs)
 
-def DPN92(**kwargs):
+def DPN98(**kwargs):
     cfg = {
         'filters1': [16, 32, 64, 128],
         'filters2': [48, 96, 192, 384],
         'dense_depth': [4, 8, 10, 20],
-        'num_block': [2, 2, 2, 2],
+        'num_block': [2, 3, 3, 2],
     }
     return DPN(cfg, **kwargs)
