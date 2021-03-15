@@ -30,11 +30,13 @@ class PreactResBlock(tf.keras.layers.Layer):
 
     
     def call(self, x):
-        res = self.shortcut(x)
-        x = self.conv1(self.relu1(self.bn1(x)))
+        preact = self.relu1(self.bn1(x))
+        res = self.shortcut(preact)
+        x = self.conv1(preact)
         x = self.conv2(self.relu2(self.bn2(x)))
         x += res
         return x
+
 
 
 class PreactResStack(tf.keras.layers.Layer):
