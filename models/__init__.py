@@ -12,13 +12,13 @@ from .senet import *
 
 def create_model(model_name, initializer, weight_decay):
     model_dict = {
-        'vgg19': VGG19,
-        'resnet110': ResNet110,
-        'preact_resnet110': PreactResNet110,
-        'resnext29_2x64d': ResNext29_2x64d,
-        'densenet121': DenseNet121,
-        'dpn26': DPN26,
-        'senet18': SENet18,
+        'vgg': VGG11,
+        'resnet': ResNet56,
+        'preact_resnet': PreactResNet56,
+        'resnext': ResNext29_2x64d,
+        'densenet': DenseNet121,
+        'dpn': DPN26,
+        'senet': SENet18,
         'dla': DLA,
     }
 

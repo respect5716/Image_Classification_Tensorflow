@@ -62,6 +62,12 @@ def PreactResNet(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     outputs = tf.keras.layers.Dense(output_shape, activation='softmax', **kwargs)(x)
     return tf.keras.Model(inputs, outputs)
 
+def PreactResNet56(**kwargs):
+    cfg = {
+        'num_block': 9
+    }
+    return PreactResNet(cfg, **kwargs)
+
 def PreactResNet110(**kwargs):
     cfg = {
         'num_block': 18

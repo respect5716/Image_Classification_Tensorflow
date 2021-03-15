@@ -15,7 +15,7 @@ def augment(images, labels):
 
 def create_dataset(batch_size):
     (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
-    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1)
+    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.1, random_state=23)
 
     train_data = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_data = train_data.map(augment).map(normalize).batch(batch_size).shuffle(1000)

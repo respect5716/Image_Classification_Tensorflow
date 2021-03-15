@@ -9,7 +9,7 @@ from optimizers import create_optimizer, CosineDecay
 
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default='vgg11')
+parser.add_argument('--model', type=str, default='vgg')
 parser.add_argument('--project', type=str, default='cifar10')
 parser.add_argument('--optimizer', type=str, default='sgd')
 parser.add_argument('--initializer', type=str, default='he_uniform')
