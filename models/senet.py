@@ -7,59 +7,69 @@ https://arxiv.org/abs/1709.01507
 
 import tensorflow as tf
 
+class Block(tf.keras.layers.Layer):
+    def __init__(self, filters, strides, **kwargs):
+        super(Block, self).__init__()
+        self.filters = filters
+        self.strides = strides
+        self.kwargs = kwargs
 
-def residual_block(x, filters, strides, **kwargs):
-    if strides != 1 or x.shape[-1] != filters:
-        shortcut = tf.keras.layers.Conv2D(filters, 1, strides, use_bias=False, **kwargs)(x)
-        shortcut = tf.keras.layers.BatchNormalization()(shortcut)
-    else:
-        shortcut = x
+    def build(self, input_shape):
+        if self.strides > 1 or input_shape[-1] != self.filters:
+            self.shortcut = tf.keras.layers.Conv2D(self.filters, 1, self.strides, use_bias=False, **self.kwargs)
+        else:
+            self.shortcut = tf.identity
 
-    x = tf.keras.layers.Conv2D(filters, 3, strides, 'same', use_bias=False, **kwargs)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.ReLU()(x)
+        self.conv1 = tf.keras.layers.Conv2D(self.filters, 3, strides, 'same', use_bias=False, **self.kwargs)
+        self.bn1 = tf.keras.layers.BatchNormalization()
+        self.relu1 = tf.keras.layers.ReLU()
+        self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False, **self.kwargs)
+        self.bn2 = tf.keras.layers.BatchNormalization()
+        
+        self.pool = tf.keras.layers.GlobalAvgPool2D()
+        self.dense1 = tf.keras.layers.Dense(self.filters // 16, activation='relu', **kwargs)
+        self.dense2 = tf.keras.layers.Dense(self.filters, activation='sigmoid', **kwargs)
+        self.relu2 = tf.keras.layers.ReLU()
+    
+    def call(self, x):
+        res = self.shortcut(x)
+        x = self.relu1(self.bn1(self.conv1(x)))
+        x = self.bn2(self.conv2(x))
 
-    x = tf.keras.layers.Conv2D(filters, 3, 1, 'same', use_bias=False, **kwargs)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
+        w = self.dense2(self.dense1(self.pool(x)))
+        x *= w
+        x += res
+        x = self.relu2(x)
+        return x
 
-    w = tf.keras.layers.AvgPool2D(x.shape[1])(x)
-    w = tf.keras.layers.Dense(filters // 16, activation='relu')(w)
-    w = tf.keras.layers.Dense(filters, activation='sigmoid')(w)
+class Stack(tf.keras.layers.Layer):
+    def __init__(self, filters, strides, num_block, **kwargs):
+        super(Stack, self).__init__()
+        strides = [strides] + [1] * (num_block - 1)
+        self.blocks = [Block(filters, st, **kwargs) for st in strides]
+    
+    def call(self, x):
+        for b in self.blocks:
+            x = b(x)
+        return x
 
-    x *= w
-    x += shortcut
-    x = tf.keras.layers.ReLU()(x)
-
-    return x
-
-def residual_stack(x, filters, num_block, downsample, block_id, **kwargs):
-    if downsample:
-        x = residual_block(x, filters, 2, **kwargs)
-    else:
-        x = residual_block(x, filters, 1, **kwargs)
-
-    for _ in range(num_block-1):
-        x = residual_block(x, filters, 1, **kwargs)
-    return x
-
-def SENet(cfg, **kwargs):
-    inputs = tf.keras.layers.Input((32, 32, 3))
+def SENet(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
+    inputs = tf.keras.layers.Input(input_shape)
     x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
 
-    x = residual_stack(x, 64, cfg['num_block'][0], False, 1, **kwargs)
-    x = residual_stack(x, 128, cfg['num_block'][1], True, 2, **kwargs)
-    x = residual_stack(x, 256, cfg['num_block'][2], True, 3, **kwargs)
-    x = residual_stack(x, 512, cfg['num_block'][3], True, 4, **kwargs)
+    x = Stack(16, 1, cfg['num_block'][0], **kwargs)(x)
+    x = Stack(32, 2, cfg['num_block'][1], **kwargs)(x)
+    x = Stack(64, 2, cfg['num_block'][2], **kwargs)(x)
+    x = Stack(128, 2, cfg['num_block'][3], **kwargs)(x)
     
-    x = tf.keras.layers.AvgPool2D(4)(x)
-    x = tf.keras.layers.Flatten()(x)
-    outputs = tf.keras.layers.Dense(10, activation='softmax')(x)
+    x = tf.keras.layers.GlobalAvgPool2D()(x)
+    outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
 
-def SENet18(**kwargs):
+def SENet26(**kwargs):
     cfg = {
-        'num_block': [2, 2, 2, 2]
+        'num_block': [3, 3, 3, 3]
     }
     return SENet(cfg, **kwargs)
