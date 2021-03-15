@@ -48,7 +48,7 @@ class Stack(tf.keras.layers.Layer):
     def __init__(self, filters1, filters2, dense_depth, strides, num_block, **kwargs):
         super(Stack, self).__init__()
         strides = [strides] + [1] * (num_block - 1)
-        self.blocks = [Block(filters1, filters2, dense_depth, strides, **kwargs) for s in strides]
+        self.blocks = [Block(filters1, filters2, dense_depth, st, **kwargs) for st in strides]
     
     def call(self, x):
         for b in self.blocks:
@@ -57,7 +57,6 @@ class Stack(tf.keras.layers.Layer):
 
 def DPN(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     f1, f2, dp, nb = cfg['filters1'], cfg['filters2'], cfg['dense_depth'], cfg['num_block']
-    strides = [1, 2, 2, 2]
 
     inputs = tf.keras.layers.Input(input_shape)
     x = tf.keras.layers.Conv2D(16, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
@@ -86,7 +85,7 @@ def DPN26(**kwargs):
 def DPN92(**kwargs):
     cfg = {
         'filters1': [16, 32, 64, 128],
-        'filters2': [48, 96, 192, 384]
+        'filters2': [48, 96, 192, 384],
         'dense_depth': [4, 8, 10, 20],
         'num_block': [2, 2, 2, 2],
     }
