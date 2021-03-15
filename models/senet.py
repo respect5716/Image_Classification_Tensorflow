@@ -20,7 +20,7 @@ class Block(tf.keras.layers.Layer):
         else:
             self.shortcut = tf.identity
 
-        self.conv1 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False, **self.kwargs)
+        self.conv1 = tf.keras.layers.Conv2D(self.filters, 3, 1, 'same', use_bias=False, **self.kwargs)
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
         self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False, **self.kwargs)
@@ -37,7 +37,9 @@ class Block(tf.keras.layers.Layer):
         x = self.bn2(self.conv2(x))
 
         w = self.dense2(self.dense1(self.pool(x)))
+        w = w[:,None,None,:]
         x *= w
+        
         x += res
         x = self.relu2(x)
         return x
@@ -55,8 +57,9 @@ class Stack(tf.keras.layers.Layer):
 
 def SENet(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     inputs = tf.keras.layers.Input(input_shape)
-    x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
+    x = tf.keras.layers.Conv2D(16, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.ReLU()(x)
 
     x = Stack(16, 1, cfg['num_block'][0], **kwargs)(x)
     x = Stack(32, 2, cfg['num_block'][1], **kwargs)(x)
