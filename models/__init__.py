@@ -16,7 +16,7 @@ def create_model(model_name, initializer, weight_decay):
         'resnet': ResNet56,
         'preact_resnet': PreactResNet56,
         'resnext': ResNext29_4x16d,
-        'densenet': DenseNet35,
+        'densenet': DenseNet57,
         'dpn': DPN26,
         'senet': SENet18,
         'dla': DLA,

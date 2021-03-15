@@ -54,10 +54,10 @@ def DenseNet(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     return tf.keras.Model(inputs, outputs)
 
 
-def DenseNet35(**kwargs):
+def DenseNet57(**kwargs):
     cfg = {
         'growth_rate': 16,
-        'num_block': [4, 4, 4, 4]
+        'num_block': [6, 6, 8, 6]
     }
     return DenseNet(cfg, **kwargs)
 

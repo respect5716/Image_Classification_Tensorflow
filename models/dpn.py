@@ -6,30 +6,33 @@ https://arxiv.org/abs/1707.01629
 """
 import tensorflow as tf
 
-class Bottleneck(tf.keras.layers.Layer):
-    def __init__(self, filters1, filters2, dense_depth, strides, is_first, **kwargs):
-        super(Bottleneck, self).__init__()
+class Block(tf.keras.layers.Layer):
+    def __init__(self, filters1, filters2, dense_depth, strides, **kwargs):
+        super(Block, self).__init__()
+        self.filters1 = filters1
         self.filters2 = filters2
+        self.dense_depth = dense_depth
+        self.output_filters = filters2 + dense_depth
+        self.strides = strides
+        self.kwargs = kwargs
 
-        self.conv1 = tf.keras.layers.Conv2D(filters1, 1, 1, use_bias=False, **kwargs)
+    def build(self, input_shape):
+        if self.strides > 1 or input_shape[-1] != self.output_filters:
+            self.shortcut = tf.keras.layers.Conv2D(self.output_filters, 1, self.strides, use_bias=False, **self.kwargs)
+        else:
+            self.shortcut = tf.identity
+
+        self.conv1 = tf.keras.layers.Conv2D(self.filters1, 1, 1, 'same', use_bias=False, **self.kwargs)
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
-
-        self.conv2 = tf.keras.layers.Conv2D(filters1, 3, strides, 'same', groups=32, use_bias=False, **kwargs)
+    
+        self.conv2 = tf.keras.layers.Conv2D(self.filters1, 3, self.strides, 'same', groups=8, use_bias=False, **self.kwargs)
         self.bn2 = tf.keras.layers.BatchNormalization()
         self.relu2 = tf.keras.layers.ReLU()
 
-        self.conv3 = tf.keras.layers.Conv2D(filters2 + dense_depth, 1, 1, use_bias=False, **kwargs)
+        self.conv3 = tf.keras.layers.Conv2D(self.output_filters, 1, 1, 'same', use_bias=False, **self.kwargs)
         self.bn3 = tf.keras.layers.BatchNormalization()
         self.relu3 = tf.keras.layers.ReLU()
-
-        if is_first:
-            self.shortcut = tf.keras.Sequential([
-                tf.keras.layers.Conv2D(filters2 + dense_depth, 1, strides, use_bias=False, **kwargs),
-                tf.keras.layers.BatchNormalization()
-            ])
-        else:
-            self.shortcut = tf.identity
     
     def call(self, x):
         res = self.shortcut(x)
@@ -41,39 +44,50 @@ class Bottleneck(tf.keras.layers.Layer):
         x = self.relu3(x)
         return x
 
+class Stack(tf.keras.layers.Layer):
+    def __init__(self, filters1, filters2, dense_depth, strides, num_block, **kwargs):
+        super(Stack, self).__init__()
+        strides = [strides] + [1] * (num_block - 1)
+        self.blocks = [Block(filters1, filters2, dense_depth, strides, **kwargs) for s in strides]
+    
+    def call(self, x):
+        for b in self.blocks:
+            x = b(x)
+        return x
+
 def DPN(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
-    filters1, filters2, = cfg['filters1'], cfg['filters2']
-    num_blocks, dense_depth = cfg['num_blocks'], cfg['dense_depth']
+    f1, f2, dp, nb = cfg['filters1'], cfg['filters2'], cfg['dense_depth'], cfg['num_block']
     strides = [1, 2, 2, 2]
 
     inputs = tf.keras.layers.Input(input_shape)
-    x = tf.keras.layers.Conv2D(64, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
+    x = tf.keras.layers.Conv2D(16, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tf.keras.layers.ReLU()(x)
-
-    for f1, f2, nb, dp, st in zip(filters1, filters2, num_blocks, dense_depth, strides):
-        block_strides = [st] + [1] * (nb - 1)
-        for idx, bs in enumerate(block_strides):
-            x = Bottleneck(f1, f2, dp, bs, idx==0, **kwargs)(x)
     
+    x = Stack(f1[0], f2[0], dp[0], 1, nb[0])(x)
+    x = Stack(f1[1], f2[1], dp[1], 2, nb[1])(x)
+    x = Stack(f1[2], f2[2], dp[2], 2, nb[2])(x)
+    x = Stack(f1[3], f2[3], dp[3], 2, nb[3])(x)
+
     x = tf.keras.layers.GlobalAvgPool2D()(x)
     outputs = tf.keras.layers.Dense(output_shape, activation='softmax')(x)
     return tf.keras.Model(inputs, outputs)
 
+
 def DPN26(**kwargs):
     cfg = {
-        'filters1': [96, 192, 384, 768],
-        'filters2': [256, 512, 1024, 2048],
-        'num_blocks': [2, 2, 2, 2],
-        'dense_depth': [16, 32, 24, 128]
+        'filters1': [16, 32, 64, 128],
+        'filters2': [48, 96, 192, 384],
+        'dense_depth': [4, 8, 10, 20],
+        'num_block': [2, 2, 2, 2],
     }
     return DPN(cfg, **kwargs)
 
 def DPN92(**kwargs):
     cfg = {
-        'filters1': [96, 192, 384, 768],
-        'filters2': [256, 512, 1024, 2048],
-        'num_blocks': [3, 4, 20, 3],
-        'dense_depth': [16, 32, 24, 128]
+        'filters1': [16, 32, 64, 128],
+        'filters2': [48, 96, 192, 384]
+        'dense_depth': [4, 8, 10, 20],
+        'num_block': [2, 2, 2, 2],
     }
     return DPN(cfg, **kwargs)
