@@ -8,14 +8,14 @@ import tensorflow as tf
 
 
 class Bottleneck(tf.keras.layers.Layer):
-    def __init__(self, growth_rate):
+    def __init__(self, growth_rate, **kwargs):
         super(Bottleneck, self).__init__()
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
-        self.conv1 = tf.keras.layers.Conv2D(growth_rate*4, 1, 1, use_bias=False)
+        self.conv1 = tf.keras.layers.Conv2D(growth_rate*4, 1, 1, use_bias=False, **kwargs)
         self.bn2 = tf.keras.layers.BatchNormalization()
         self.relu2 = tf.keras.layers.ReLU()
-        self.conv2 = tf.keras.layers.Conv2D(growth_rate, 3, 1, 'same', use_bias=False)
+        self.conv2 = tf.keras.layers.Conv2D(growth_rate, 3, 1, 'same', use_bias=False, **kwargs)
     
     def call(self, x):
         res = x
@@ -26,21 +26,21 @@ class Bottleneck(tf.keras.layers.Layer):
 
 
 class Transition(tf.keras.layers.Layer):
-    def __init__(self, filters):
+    def __init__(self, filters, **kwargs):
         super(Transition, self).__init__()
         self.bn = tf.keras.layers.BatchNormalization()
         self.relu = tf.keras.layers.ReLU()
-        self.conv = tf.keras.layers.Conv2D(filters, 1, 1, use_bias=False)
+        self.conv = tf.keras.layers.Conv2D(filters, 1, 1, use_bias=False, **kwargs)
         self.pool = tf.keras.layers.AvgPool2D()
     
     def call(self, x):
         return self.pool(self.conv(self.relu(self.bn(x))))
 
 
-def DenseNet(cfg, input_shape=(32, 32, 3), output_shape=10):
+def DenseNet(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     filters = cfg['growth_rate'] * 2
     inputs = tf.keras.layers.Input(input_shape)
-    x = tf.keras.layers.Conv2D(filters, 3, 1, 'same', use_bias=False)(inputs)
+    x = tf.keras.layers.Conv2D(filters, 3, 1, 'same', use_bias=False, **kwargs)(inputs)
 
     for nb in cfg['num_block']:
         for _ in range(nb):
@@ -55,30 +55,30 @@ def DenseNet(cfg, input_shape=(32, 32, 3), output_shape=10):
 
 
 
-def DenseNet121():
+def DenseNet121(**kwargs):
     cfg = {
         'growth_rate': 32,
         'num_block': [6, 12, 24, 16]
     }
-    return DenseNet(cfg)
+    return DenseNet(cfg, **kwargs)
 
-def DenseNet169():
+def DenseNet169(**kwargs):
     cfg = {
         'growth_rate': 32,
         'num_block': [6, 12, 32, 32]
     }
-    return DenseNet(cfg)
+    return DenseNet(cfg, **kwargs)
 
-def DenseNet201():
+def DenseNet201(**kwargs):
     cfg = {
         'growth_rate': 32,
         'num_block': [6, 12, 48, 32]
     }
-    return DenseNet(cfg)
+    return DenseNet(cfg, **kwargs)
 
-def DenseNet264():
+def DenseNet264(**kwargs):
     cfg = {
         'growth_rate': 32,
         'num_block': [6, 12, 64, 48]
     }
-    return DenseNet(cfg)
+    return DenseNet(cfg, **kwargs)

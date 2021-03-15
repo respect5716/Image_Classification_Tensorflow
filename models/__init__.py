@@ -18,8 +18,8 @@ def create_model(model_name, initializer, weight_decay):
         'resnext29_2x64d': ResNext29_2x64d,
         'densenet121': DenseNet121,
         'dpn26': DPN26,
-        'dla': DLA,
         'senet18': SENet18,
+        'dla': DLA,
     }
 
     regularizer = tf.keras.regularizers.l2(weight_decay)

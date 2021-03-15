@@ -1,0 +1,4 @@
+wandb==0.10.22
+numpy==1.19.5
+tensorflow==2.4.1
+tensorflow-addons==0.12.1
