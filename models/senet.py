@@ -20,15 +20,15 @@ class Block(tf.keras.layers.Layer):
         else:
             self.shortcut = tf.identity
 
-        self.conv1 = tf.keras.layers.Conv2D(self.filters, 3, strides, 'same', use_bias=False, **self.kwargs)
+        self.conv1 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False, **self.kwargs)
         self.bn1 = tf.keras.layers.BatchNormalization()
         self.relu1 = tf.keras.layers.ReLU()
         self.conv2 = tf.keras.layers.Conv2D(self.filters, 3, self.strides, 'same', use_bias=False, **self.kwargs)
         self.bn2 = tf.keras.layers.BatchNormalization()
         
         self.pool = tf.keras.layers.GlobalAvgPool2D()
-        self.dense1 = tf.keras.layers.Dense(self.filters // 16, activation='relu', **kwargs)
-        self.dense2 = tf.keras.layers.Dense(self.filters, activation='sigmoid', **kwargs)
+        self.dense1 = tf.keras.layers.Dense(self.filters // 16, activation='relu', **self.kwargs)
+        self.dense2 = tf.keras.layers.Dense(self.filters, activation='sigmoid', **self.kwargs)
         self.relu2 = tf.keras.layers.ReLU()
     
     def call(self, x):
