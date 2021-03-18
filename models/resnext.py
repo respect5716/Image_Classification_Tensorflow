@@ -68,11 +68,11 @@ def ResNeXt(cfg, input_shape=(32, 32, 3), output_shape=10, **kwargs):
     outputs = tf.keras.layers.Dense(output_shape, activation='softmax', **kwargs)(x)
     return tf.keras.Model(inputs, outputs)
 
-def ResNext29_4x16d(**kwargs):
+def ResNext20_4x16d(**kwargs):
     cfg = {
         'bottleneck_width': 16,
         'cardinality': 4,
-        'num_block': 3,
+        'num_block': 2,
     }
     return ResNeXt(cfg, **kwargs)
 
