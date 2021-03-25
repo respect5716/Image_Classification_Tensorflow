@@ -41,7 +41,7 @@ OR
 | SENet26         | 0.931  | 1.1M   |
 
 * It may differ from the results of the papers because the models' size were reduced in experiments.
-* If you want to see more details, check [here](https://wandb.ai/respect5716/Image_Classification).
+* If you want to see more details, check [here](https://wandb.ai/respect5716/image_classification_tensorflow).
 
 
 
