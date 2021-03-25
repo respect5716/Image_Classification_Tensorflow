@@ -16,8 +16,8 @@ To implement and experiment image classification models.
 ## Run
 
 ```python
-!git clone https://github.com/respect5716/Image_Classification.git
-%cd Image_Classification
+!git clone https://github.com/respect5716/Image_Classification_Tensorflow.git
+%cd Image_Classification_Tensorflow
 
 !pip install -r requirements.txt
 !python main.py --model densenet --project Image_Classification
